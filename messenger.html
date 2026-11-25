@@ -14,11 +14,11 @@
   * { box-sizing: border-box; }
   body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
          background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif; padding:24px 16px; }
-  .card { width:100%; max-width:420px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; }
+  .card { width:100%; max-width:420px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:12px; }
   h1 { font-size:20px; margin:0; }
-  .who { font-size:15px; color:var(--muted); margin:0; }
-  .who b { color:var(--fg); }
+  .who { font-size:16px; margin:0; }
   a.go { display:block; text-align:center; background:var(--brand); color:#fff; text-decoration:none; font-weight:700; font-size:18px; padding:16px; border-radius:12px; }
+  a.alt { display:block; text-align:center; color:var(--brand); text-decoration:none; font-weight:600; padding:12px; border-radius:12px; border:1px solid var(--line); }
   button { font:inherit; font-weight:600; padding:12px; border-radius:12px; border:1px solid var(--line); background:transparent; color:var(--fg); cursor:pointer; }
   .msg { white-space:pre-wrap; background:var(--bg); border-radius:10px; padding:10px 12px; font-size:14px; }
   .note { font-size:13px; color:var(--muted); margin:0; }
@@ -27,8 +27,10 @@
 <body>
 <main class="card">
   <h1>Відкрити Messenger</h1>
-  <p class="who" id="who" hidden>Знайдіть у Messenger: <b id="name"></b></p>
-  <a class="go" id="go" href="fb-messenger://">Відкрити Messenger</a>
+  <p class="who" id="who" hidden>Кому писати: <b id="name"></b></p>
+  <a class="go" id="go1" href="#">1. Відкрити Messenger</a>
+  <a class="alt" id="go2" href="#">2. Якщо не відкрився — спробуйте так</a>
+  <a class="alt" id="go3" href="https://m.me/">3. Ще один спосіб</a>
   <button id="copy" type="button" hidden>Скопіювати текст ще раз</button>
   <div class="msg" id="msg" hidden></div>
   <p class="note">Текст уже скопійовано. У Messenger відкрийте чат з людиною, утримайте поле вводу і натисніть «Вставити».</p>
@@ -39,21 +41,27 @@
   var p = new URLSearchParams(location.hash.slice(1));
   var n = p.get('n') || '';
   var t = p.get('t') || '';
-  var go = document.getElementById('go');
-  // Android: intent відкриває саме застосунок Messenger; інші системи — схема fb-messenger://
-  if (/Android/i.test(navigator.userAgent)) {
-    go.href = 'intent://#Intent;scheme=fb-messenger;package=com.facebook.orca;end';
+  var here = location.href;
+  var android = /Android/i.test(navigator.userAgent);
+  var go1 = document.getElementById('go1'), go2 = document.getElementById('go2');
+  if (android) {
+    // 1: запустити застосунок Messenger (com.facebook.orca), як з іконки на екрані; якщо не вийде — лишитись тут
+    go1.href = 'intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.facebook.orca;S.browser_fallback_url=' + encodeURIComponent(here) + ';end';
+    // 2: відкрити список чатів через схему Messenger
+    go2.href = 'intent://threads#Intent;scheme=fb-messenger;package=com.facebook.orca;S.browser_fallback_url=' + encodeURIComponent(here) + ';end';
+  } else {
+    go1.href = 'fb-messenger://';
+    go2.href = 'fb-messenger://threads';
   }
   if (n) { document.getElementById('name').textContent = n; document.getElementById('who').hidden = false; }
+  var doCopy = function () { try { navigator.clipboard.writeText(t).catch(function(){}); } catch (e) {} };
   if (t) {
     var msg = document.getElementById('msg'); msg.textContent = t; msg.hidden = false;
     var copy = document.getElementById('copy'); copy.hidden = false;
-    var doCopy = function () { try { navigator.clipboard.writeText(t).catch(function(){}); } catch (e) {} };
     copy.addEventListener('click', function () { doCopy(); copy.textContent = 'Скопійовано'; });
-    go.addEventListener('click', doCopy);
+    [go1, go2, document.getElementById('go3')].forEach(function (a) { a.addEventListener('click', doCopy); });
   }
-  // Try to open Messenger right away; if the browser blocks it, the button still works.
-  setTimeout(function () { location.href = go.href; }, 300);
+  // Без автоматичного переходу: Messenger відкривається лише натисканням кнопки.
 </script>
 </body>
 </html>
