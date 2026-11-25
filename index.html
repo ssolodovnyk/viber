@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Відкрити Viber</title>
+<style>
+  :root { --bg:#f4f2fa; --fg:#1d1b24; --muted:#615c70; --viber:#6f4fc8; --card:#ffffff; --line:#ddd8ea; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#16141c; --fg:#efedf5; --muted:#a9a4b8; --viber:#8f72e0; --card:#211e2a; --line:#36324a; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif; padding:24px 16px; }
+  .card { width:100%; max-width:420px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; }
+  h1 { font-size:20px; margin:0; }
+  .num { font-size:18px; font-variant-numeric:tabular-nums; color:var(--muted); }
+  a.go { display:block; text-align:center; background:var(--viber); color:#fff; text-decoration:none; font-weight:700; font-size:18px; padding:16px; border-radius:12px; }
+  button { font:inherit; font-weight:600; padding:12px; border-radius:12px; border:1px solid var(--line); background:transparent; color:var(--fg); cursor:pointer; }
+  .msg { white-space:pre-wrap; background:var(--bg); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .note { font-size:13px; color:var(--muted); margin:0; }
+</style>
+</head>
+<body>
+<main class="card">
+  <h1 id="title">Відкрити чат у Viber</h1>
+  <div class="num" id="num"></div>
+  <a class="go" id="go" href="#">Відкрити Viber</a>
+  <button id="copy" type="button" hidden>Скопіювати текст ще раз</button>
+  <div class="msg" id="msg" hidden></div>
+  <p class="note" id="note">Якщо текст не з'явився у Viber сам — утримайте поле вводу і натисніть «Вставити».</p>
+</main>
+<script>
+  // Data comes only in the part after "#": browsers never send it to the server.
+  // Format: #n=380XXXXXXXXX&t=<url-encoded text>
+  var p = new URLSearchParams(location.hash.slice(1));
+  var n = (p.get('n') || '').replace(/[^0-9]/g, '');
+  var t = p.get('t') || '';
+  var go = document.getElementById('go');
+  if (!n) {
+    document.getElementById('title').textContent = 'Номер не вказано';
+    go.hidden = true;
+    document.getElementById('note').textContent = 'Відкрийте цю сторінку кнопкою «Відкрити у Viber» зі сторінки «Кому написати».';
+  } else {
+    document.getElementById('num').textContent = '+' + n;
+    go.href = 'viber://chat?number=%2B' + n + (t ? '&draft=' + encodeURIComponent(t) : '');
+    if (t) {
+      var msg = document.getElementById('msg'); msg.textContent = t; msg.hidden = false;
+      var copy = document.getElementById('copy'); copy.hidden = false;
+      var doCopy = function () { try { navigator.clipboard.writeText(t).catch(function(){}); } catch (e) {} };
+      copy.addEventListener('click', function () { doCopy(); copy.textContent = 'Скопійовано'; });
+      go.addEventListener('click', doCopy);
+    }
+    // Try to open Viber right away; if the browser blocks it, the button still works.
+    setTimeout(function () { location.href = go.href; }, 300);
+  }
+</script>
+</body>
+</html>
