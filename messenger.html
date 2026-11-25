@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Відкрити Messenger</title>
+<style>
+  :root { --bg:#f1f4fb; --fg:#161a24; --muted:#5d6475; --brand:#0866ff; --card:#ffffff; --line:#d9deea; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12141a; --fg:#eceef4; --muted:#a2a8b8; --brand:#4b8dff; --card:#1d2029; --line:#323746; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+         background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif; padding:24px 16px; }
+  .card { width:100%; max-width:420px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; }
+  h1 { font-size:20px; margin:0; }
+  .who { font-size:15px; color:var(--muted); margin:0; }
+  .who b { color:var(--fg); }
+  a.go { display:block; text-align:center; background:var(--brand); color:#fff; text-decoration:none; font-weight:700; font-size:18px; padding:16px; border-radius:12px; }
+  button { font:inherit; font-weight:600; padding:12px; border-radius:12px; border:1px solid var(--line); background:transparent; color:var(--fg); cursor:pointer; }
+  .msg { white-space:pre-wrap; background:var(--bg); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .note { font-size:13px; color:var(--muted); margin:0; }
+</style>
+</head>
+<body>
+<main class="card">
+  <h1>Відкрити Messenger</h1>
+  <p class="who" id="who" hidden>Знайдіть у Messenger: <b id="name"></b></p>
+  <a class="go" id="go" href="fb-messenger://">Відкрити Messenger</a>
+  <button id="copy" type="button" hidden>Скопіювати текст ще раз</button>
+  <div class="msg" id="msg" hidden></div>
+  <p class="note">Текст уже скопійовано. У Messenger відкрийте чат з людиною, утримайте поле вводу і натисніть «Вставити».</p>
+</main>
+<script>
+  // Data comes only in the part after "#": browsers never send it to the server.
+  // Format: #n=<ім'я клієнта>&t=<url-encoded text>
+  var p = new URLSearchParams(location.hash.slice(1));
+  var n = p.get('n') || '';
+  var t = p.get('t') || '';
+  var go = document.getElementById('go');
+  // Android: intent відкриває саме застосунок Messenger; інші системи — схема fb-messenger://
+  if (/Android/i.test(navigator.userAgent)) {
+    go.href = 'intent://#Intent;scheme=fb-messenger;package=com.facebook.orca;end';
+  }
+  if (n) { document.getElementById('name').textContent = n; document.getElementById('who').hidden = false; }
+  if (t) {
+    var msg = document.getElementById('msg'); msg.textContent = t; msg.hidden = false;
+    var copy = document.getElementById('copy'); copy.hidden = false;
+    var doCopy = function () { try { navigator.clipboard.writeText(t).catch(function(){}); } catch (e) {} };
+    copy.addEventListener('click', function () { doCopy(); copy.textContent = 'Скопійовано'; });
+    go.addEventListener('click', doCopy);
+  }
+  // Try to open Messenger right away; if the browser blocks it, the button still works.
+  setTimeout(function () { location.href = go.href; }, 300);
+</script>
+</body>
+</html>
