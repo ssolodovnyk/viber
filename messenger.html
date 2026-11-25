@@ -34,6 +34,9 @@
   var p = new URLSearchParams(location.hash.slice(1));
   var n = p.get('n') || '';
   var t = p.get('t') || '';
+  // Необов'язково: c=<адреса чату> — лише https://m.me/... або https://www.messenger.com/t/... з цифрами
+  var c = p.get('c') || '';
+  if (/^https:\/\/(m\.me\/(t\/)?|www\.messenger\.com\/t\/)[0-9]+$/.test(c)) { document.getElementById('go').href = c; }
   if (n) { document.getElementById('name').textContent = n; document.getElementById('who').hidden = false; }
   if (t) {
     var msg = document.getElementById('msg'); msg.textContent = t; msg.hidden = false;
